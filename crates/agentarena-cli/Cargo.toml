@@ -1,0 +1,21 @@
+[package]
+name = "agentarena-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Command-line interface and benchmark runner for AgentArena: AI agent simulation test bench"
+
+[[bin]]
+name = "agentarena"
+path = "src/main.rs"
+
+[dependencies]
+agentarena-core = { path = "../agentarena-core" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+colored.workspace = true
+anyhow.workspace = true
+indicatif.workspace = true
+rand.workspace = true
