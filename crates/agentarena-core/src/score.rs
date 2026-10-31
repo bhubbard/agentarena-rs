@@ -66,6 +66,27 @@ impl ScoreCalculator {
     }
 }
 
+/// Standard FIDE / Arena ELO rating calculator for head-to-head agent evaluation.
+pub struct EloCalculator;
+
+impl EloCalculator {
+    /// Compute expected score for player A given ratings `rating_a` and `rating_b`.
+    pub fn expected_score(rating_a: f64, rating_b: f64) -> f64 {
+        1.0 / (1.0 + 10.0_f64.powf((rating_b - rating_a) / 400.0))
+    }
+
+    /// Update ratings for two agents after a head-to-head scenario comparison.
+    /// `score_a` is `1.0` if A wins, `0.5` for a draw, and `0.0` if B wins.
+    pub fn update_ratings(rating_a: f64, rating_b: f64, score_a: f64, k_factor: f64) -> (f64, f64) {
+        let expected_a = Self::expected_score(rating_a, rating_b);
+        let expected_b = 1.0 - expected_a;
+        let score_b = 1.0 - score_a;
+        let new_a = rating_a + k_factor * (score_a - expected_a);
+        let new_b = rating_b + k_factor * (score_b - expected_b);
+        (new_a, new_b)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,5 +101,12 @@ mod tests {
         let card = ScoreCalculator::calculate(ScenarioType::TrafficGrid, "ZevAgent", 150.0, &metrics);
         assert!(card.arena_index > 500);
         assert_eq!(card.agent_name, "ZevAgent");
+    }
+
+    #[test]
+    fn test_elo_rating_update() {
+        let (new_a, new_b) = EloCalculator::update_ratings(1500.0, 1500.0, 1.0, 32.0);
+        assert!((new_a - 1516.0).abs() < 1e-6);
+        assert!((new_b - 1484.0).abs() < 1e-6);
     }
 }

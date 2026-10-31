@@ -1,5 +1,5 @@
 use agentarena_core::{
-    Agent, ArenaRunner, RandomAgent, RunReplay, ScenarioType, ZevDecisionAgent,
+    Agent, ArenaRunner, EloCalculator, RandomAgent, RunReplay, ScenarioType, ZevDecisionAgent,
 };
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -145,6 +145,8 @@ fn main() -> Result<()> {
 
             let mut zev_total_index = 0u32;
             let mut rnd_total_index = 0u32;
+            let mut zev_elo = 1500.0;
+            let mut rnd_elo = 1500.0;
 
             for sc in &scenarios {
                 // Run Random Baseline
@@ -156,6 +158,15 @@ fn main() -> Result<()> {
                 let mut zev = ZevDecisionAgent::new();
                 let (score_zev, _) = ArenaRunner::run_scenario(*sc, &mut zev, seed, ticks);
                 zev_total_index += score_zev.arena_index;
+
+                let outcome = match score_zev.arena_index.cmp(&score_rnd.arena_index) {
+                    std::cmp::Ordering::Greater => 1.0,
+                    std::cmp::Ordering::Equal => 0.5,
+                    std::cmp::Ordering::Less => 0.0,
+                };
+                let (next_zev, next_rnd) = EloCalculator::update_ratings(zev_elo, rnd_elo, outcome, 32.0);
+                zev_elo = next_zev;
+                rnd_elo = next_rnd;
 
                 println!(
                     "{:<28} {:<18} {:<12.1} {:<9.1}% {:<12}",
@@ -177,10 +188,12 @@ fn main() -> Result<()> {
             }
 
             println!("\n{}", "Benchmark Summary:".bold());
-            println!("  Random Baseline Overall Score: {} / 4000", rnd_total_index);
-            println!("  Zev Decision Agent Overall   : {} / 4000 ({:+.1}% over baseline)",
+            println!("  Random Baseline Overall Score: {} / 4000 (ELO: {:.0})", rnd_total_index, rnd_elo);
+            println!(
+                "  Zev Decision Agent Overall   : {} / 4000 ({:+.1}% over baseline | ELO: {:.0})",
                 zev_total_index.to_string().green().bold(),
-                ((zev_total_index as f64 - rnd_total_index as f64) / rnd_total_index.max(1) as f64) * 100.0
+                ((zev_total_index as f64 - rnd_total_index as f64) / rnd_total_index.max(1) as f64) * 100.0,
+                zev_elo
             );
         }
 

@@ -15,7 +15,7 @@ pub use crowd::{CrowdEnvironment, CrowdMetrics};
 pub use orchestrator::{SoftwareTeamEnvironment, TaskItem, TeamMetrics};
 pub use replay::{ReplayStep, RunReplay};
 pub use runner::ArenaRunner;
-pub use score::{ScoreCalculator, ScoreCard};
+pub use score::{EloCalculator, ScoreCalculator, ScoreCard};
 pub use tactical::{CombatUnit, TacticalEnvironment, TacticalMetrics};
 pub use traffic::{SignalPhase, TrafficEnvironment, TrafficIntersection, TrafficMetrics};
 pub use types::{Action, Observation, ScenarioType, StepResult};

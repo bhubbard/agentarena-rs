@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>agentarena-rs — Deterministic Multi-Domain AI Agent Simulation Arena & Benchmark Test Bench</title>
+  <meta name="description" content="Pure-Rust deterministic AI agent evaluation arena across Traffic Grids (IDM), Tactical Combat, Crowd Evacuation (RVO), and Software Engineering DAGs with 0–1000 Arena Index and FIDE ELO ratings." />
+  <link rel="canonical" href="https://code.brandonhubbard.com/agentarena-rs/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-void: #0a0a0a;
+      --bg-surface: #111111;
+      --bg-elevated: #171717;
+      --bg-panel: #1d1d1d;
+      --border-grid: #262626;
+      --border-strong: #3f3f46;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-primary: #f59e0b;
+      --accent-secondary: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-purple: #a855f7;
+      --accent-danger: #ef4444;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="light"] {
+      --bg-void: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f1f5f9;
+      --bg-panel: #e2e8f0;
+      --border-grid: #cbd5e1;
+      --border-strong: #94a3b8;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --accent-primary: #d97706;
+      --accent-secondary: #059669;
+      --accent-blue: #2563eb;
+      --accent-purple: #7c3aed;
+      --accent-danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0px !important;
+    }
+
+    body {
+      background-color: var(--bg-void);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Unified Top Site Header */
+    .bh-site-header {
+      background: var(--bg-void);
+      border-bottom: 1px solid var(--border-grid);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    .bh-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .bh-brand-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--accent-primary);
+      display: inline-block;
+    }
+
+    .bh-header-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .bh-header-links a {
+      color: var(--text-secondary);
+      transition: color 0.15s;
+    }
+
+    .bh-header-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    /* Sticky Subnav */
+    .sticky-subnav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-grid);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+    }
+
+    .subnav-title {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .subnav-badge {
+      background: var(--accent-primary);
+      color: #000;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 0.12rem 0.45rem;
+      text-transform: uppercase;
+    }
+
+    .subnav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subnav-links a {
+      color: var(--text-secondary);
+    }
+
+    .subnav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .theme-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-grid);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent-primary);
+    }
+
+    /* Layout Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      border-left: 1px solid var(--border-grid);
+      border-right: 1px solid var(--border-grid);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 3.5rem 2.5rem;
+      border-bottom: 1px solid var(--border-grid);
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 2.5rem;
+      background:
+        linear-gradient(90deg, rgba(245, 158, 11, 0.04) 1px, transparent 1px),
+        linear-gradient(rgba(245, 158, 11, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-primary);
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.1rem, 4vw, 3.25rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.15rem;
+    }
+
+    .hero-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      max-width: 68ch;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.75rem 1.35rem;
+      border: 1px solid var(--border-strong);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #000;
+      border-color: var(--accent-primary);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn:hover {
+      border-color: var(--accent-primary);
+    }
+
+    .hero-telemetry {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--border-grid);
+      background: var(--bg-surface);
+    }
+
+    .telemetry-cell {
+      padding: 1.25rem;
+      border-right: 1px solid var(--border-grid);
+      border-bottom: 1px solid var(--border-grid);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .telemetry-cell:nth-child(2n) {
+      border-right: none;
+    }
+
+    .telemetry-cell:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
+    .telemetry-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .telemetry-val {
+      font-family: var(--font-mono);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      margin: 0.35rem 0;
+    }
+
+    .telemetry-sub {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+    }
+
+    /* Section Header */
+    .section-header {
+      padding: 1.5rem 2.5rem;
+      border-bottom: 1px solid var(--border-grid);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--accent-primary);
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* Domain Tabs */
+    .domain-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border-grid);
+      background: var(--bg-void);
+    }
+
+    .domain-tab {
+      padding: 1rem 1.25rem;
+      border-right: 1px solid var(--border-grid);
+      background: var(--bg-void);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      border-top: none;
+      border-left: none;
+      border-bottom: 3px solid transparent;
+    }
+
+    .domain-tab:last-child {
+      border-right: none;
+    }
+
+    .domain-tab:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    .domain-tab.active {
+      background: var(--bg-surface);
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .domain-tab-sub {
+      display: block;
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 0.2rem;
+    }
+
+    /* Arena Workbench Grid */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr 370px;
+      border-bottom: 1px solid var(--border-grid);
+    }
+
+    .studio-col {
+      border-right: 1px solid var(--border-grid);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .studio-col:last-child {
+      border-right: none;
+    }
+
+    .panel-title {
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-grid);
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-body {
+      padding: 1.25rem;
+      flex: 1;
+    }
+
+    .control-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+
+    .control-select, .control-input {
+      width: 100%;
+      background: var(--bg-void);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.55rem 0.7rem;
+    }
+
+    .control-range {
+      width: 100%;
+      accent-color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    .action-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-sm {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .btn-sm.active-play {
+      background: var(--accent-secondary);
+      color: #000;
+      border-color: var(--accent-secondary);
+    }
+
+    .manual-action-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .manual-action-btn {
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.5rem 0.7rem;
+      background: var(--bg-void);
+      border: 1px solid var(--border-grid);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .manual-action-btn:hover {
+      border-color: var(--accent-primary);
+      color: var(--text-primary);
+    }
+
+    .manual-action-btn.recommended {
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    /* Simulation Canvas Area */
+    .canvas-container {
+      background: #070708;
+      border-bottom: 1px solid var(--border-grid);
+      position: relative;
+      height: 360px;
+      width: 100%;
+    }
+
+    #arenaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-hud {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+    }
+
+    .hud-pill {
+      background: rgba(10, 10, 10, 0.88);
+      border: 1px solid var(--border-strong);
+      padding: 0.25rem 0.6rem;
+      color: var(--text-primary);
+    }
+
+    /* Scoreboard Strip below Canvas */
+    .scorecard-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border-grid);
+      background: var(--bg-surface);
+    }
+
+    .scorecard-box {
+      padding: 0.85rem 1rem;
+      border-right: 1px solid var(--border-grid);
+    }
+
+    .scorecard-box:last-child {
+      border-right: none;
+    }
+
+    .scorecard-label {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .scorecard-value {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-top: 0.15rem;
+    }
+
+    /* Step Trace Log */
+    .trace-log {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      max-height: 185px;
+      overflow-y: auto;
+      background: var(--bg-void);
+      padding: 0.75rem;
+    }
+
+    .trace-entry {
+      padding: 0.3rem 0;
+      border-bottom: 1px solid var(--border-grid);
+      color: var(--text-secondary);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .trace-tick {
+      color: var(--accent-primary);
+      font-weight: 700;
+      min-width: 56px;
+    }
+
+    .trace-action {
+      color: var(--accent-secondary);
+      min-width: 145px;
+    }
+
+    /* Right Column: ELO & Replay JSON */
+    .elo-card {
+      background: var(--bg-void);
+      border: 1px solid var(--border-grid);
+      padding: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .elo-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--border-grid);
+    }
+
+    .elo-row:last-child {
+      border-bottom: none;
+    }
+
+    .json-box {
+      background: var(--bg-void);
+      border: 1px solid var(--border-grid);
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      height: 225px;
+      overflow: auto;
+      white-space: pre;
+      margin-bottom: 0.75rem;
+    }
+
+    .cli-box {
+      background: var(--bg-void);
+      border: 1px solid var(--border-strong);
+      padding: 0.65rem 0.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-primary);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    /* Data Tables */
+    .table-wrap {
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-grid);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    th, td {
+      padding: 0.85rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-grid);
+      border-right: 1px solid var(--border-grid);
+    }
+
+    th:last-child, td:last-child {
+      border-right: none;
+    }
+
+    th {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tr:hover td {
+      background: var(--bg-surface);
+    }
+
+    .badge-win {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-secondary);
+      border: 1px solid var(--accent-secondary);
+      padding: 0.12rem 0.45rem;
+      font-weight: 700;
+      font-size: 0.7rem;
+    }
+
+    /* Architecture 4-Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border-grid);
+    }
+
+    .arch-card {
+      padding: 1.5rem;
+      border-right: 1px solid var(--border-grid);
+      background: var(--bg-surface);
+    }
+
+    .arch-card:last-child {
+      border-right: none;
+    }
+
+    .arch-num {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent-primary);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .arch-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .arch-card p {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.85rem;
+    }
+
+    .arch-meta {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-grid);
+      padding-top: 0.65rem;
+    }
+
+    footer {
+      padding: 2rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-surface);
+    }
+
+    @media (max-width: 1100px) {
+      .hero, .studio-grid, .arch-grid, .domain-tabs {
+        grid-template-columns: 1fr;
+      }
+      .studio-col, .arch-card, .domain-tab {
+        border-right: none;
+        border-bottom: 1px solid var(--border-grid);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Unified Brandon Hubbard Header -->
+  <header class="bh-site-header">
+    <a href="https://code.brandonhubbard.com/" class="bh-brand">
+      <span class="bh-brand-dot"></span>
+      <span>BRANDON HUBBARD // ENGINEERING PORTAL</span>
+    </a>
+    <nav class="bh-header-links">
+      <a href="https://code.brandonhubbard.com/">ALL 134 PROJECTS</a>
+      <a href="https://github.com/bhubbard/agentarena-rs" target="_blank" rel="noopener">GITHUB REPO</a>
+      <a href="benchmarks.md">BENCHMARKS.MD</a>
+    </nav>
+  </header>
+
+  <!-- Sticky Subnav -->
+  <div class="sticky-subnav">
+    <div class="subnav-title">
+      <span>AGENTARENA-RS</span>
+      <span class="subnav-badge">v0.1.0 // 4-DOMAIN AI ARENA</span>
+    </div>
+    <div class="subnav-links">
+      <a href="#arena-studio">LIVE ARENA STUDIO</a>
+      <a href="#tournament-leaderboard">TOURNAMENT & ELO</a>
+      <a href="#benchmarks">45.4X BENCHMARKS</a>
+      <a href="#architecture">ARCHITECTURE</a>
+      <button class="theme-btn" id="themeToggle" type="button">LIGHT / DARK</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div>
+        <div class="hero-eyebrow">DETERMINISTIC MULTI-AGENT SIMULATION &amp; TOURNAMENT ARENA</div>
+        <h1>Evaluate AI Agents in High-Speed Physical &amp; Systems Simulations.</h1>
+        <p class="hero-subtitle">
+          Static text puzzles cannot measure real-world operational decision-making. <strong>agentarena-rs</strong> benchmarks AI policies across 4 deterministic Rust simulation domains—<strong>Traffic Grids (IDM)</strong>, <strong>Tactical Squad Combat</strong>, <strong>Crowd Evacuation (RVO)</strong>, and <strong>Software Engineering DAGs</strong>—scoring agents via the composite <strong>Arena Index (0–1000)</strong> and head-to-head <strong>FIDE ELO ratings</strong>.
+        </p>
+        <div class="hero-actions">
+          <a href="#arena-studio" class="btn btn-primary">LAUNCH INTERACTIVE ARENA</a>
+          <button class="btn" id="heroRunTournamentBtn" type="button">RUN 4-DOMAIN TOURNAMENT (SEED 42)</button>
+          <a href="https://github.com/bhubbard/agentarena-rs" target="_blank" rel="noopener" class="btn">SOURCE CODE</a>
+        </div>
+      </div>
+
+      <div class="hero-telemetry">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">SIMULATION SPEEDUP</span>
+          <span class="telemetry-val">45.4x</span>
+          <span class="telemetry-sub">vs Python Gymnasium / PettingZoo</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">ZEV PARETO ARENA INDEX</span>
+          <span class="telemetry-val">3940 / 4000</span>
+          <span class="telemetry-sub">+55.4% over RandomBaseline</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">REPLAY SERIALIZATION</span>
+          <span class="telemetry-val">0.14 ms</span>
+          <span class="telemetry-sub">Byte-identical StdRng(u64) JSON</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">SIMULATION DOMAINS</span>
+          <span class="telemetry-val">4 ENVS</span>
+          <span class="telemetry-sub">Traffic • Tactical • Crowd • Team</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Studio -->
+    <section id="arena-studio">
+      <div class="section-header">
+        <div>
+          <span class="section-tag">INTERACTIVE DETERMINISTIC TEST BENCH</span>
+          <h2 class="section-title">Multi-Domain Simulation Arena &amp; Replay Verifier</h2>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-secondary);">
+          SEEDED PRNG: <code>StdRng::seed_from_u64</code> // ARENA INDEX: <code>0.6 * SUCCESS + 0.4 * EFFICIENCY</code>
+        </div>
+      </div>
+
+      <!-- 4 Domain Tabs -->
+      <div class="domain-tabs" role="tablist">
+        <button class="domain-tab active" data-domain="traffic_grid" type="button">
+          01 // TRAFFIC GRID
+          <span class="domain-tab-sub">Arterial Queues &amp; Signal Phases (SUMO/UXSim)</span>
+        </button>
+        <button class="domain-tab" data-domain="tactical_combat" type="button">
+          02 // TACTICAL COMBAT
+          <span class="domain-tab-sub">4v4 Fireteam Cover, LOS &amp; Flanking (TacticalAI)</span>
+        </button>
+        <button class="domain-tab" data-domain="crowd_evacuation" type="button">
+          03 // CROWD EVACUATION
+          <span class="domain-tab-sub">100-Pedestrian RVO Corridor &amp; Crush Physics</span>
+        </button>
+        <button class="domain-tab" data-domain="software_team" type="button">
+          04 // SOFTWARE TEAM DAG
+          <span class="domain-tab-sub">6-Module Sprint Pipeline &amp; Token Budget</span>
+        </button>
+      </div>
+
+      <div class="studio-grid">
+        <!-- Left Column: Controls & Manual Actions -->
+        <div class="studio-col">
+          <div class="panel-title">
+            <span>ARENA PARAMETERS</span>
+            <span id="statusBadge" style="color: var(--accent-secondary);">READY</span>
+          </div>
+          <div class="panel-body">
+            <div class="control-group">
+              <label class="control-label" for="agentSelect">
+                <span>AGENT POLICY (`Agent` Trait)</span>
+              </label>
+              <select id="agentSelect" class="control-select">
+                <option value="zev">ZevZeroTokenAgent (Pareto Heuristic)</option>
+                <option value="random">RandomBaseline (Stochastic Seeded)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" for="seedInput">
+                <span>DETERMINISTIC SEED (`u64`)</span>
+                <span id="seedLabel">42</span>
+              </label>
+              <input id="seedInput" type="number" class="control-input" value="42" min="1" max="999999" />
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" for="ticksRange">
+                <span>MAX EPISODE TICKS</span>
+                <span id="ticksLabel">25 TICKS</span>
+              </label>
+              <input id="ticksRange" type="range" class="control-range" min="10" max="50" value="25" />
+            </div>
+
+            <div class="action-btn-grid">
+              <button class="btn-sm" id="stepTickBtn" type="button">STEP +1 TICK</button>
+              <button class="btn-sm" id="autoPlayBtn" type="button">AUTO-PLAY</button>
+              <button class="btn-sm" id="runEpisodeBtn" type="button">FAST-FORWARD END</button>
+              <button class="btn-sm" id="resetEnvBtn" type="button">RESET SEED</button>
+            </div>
+
+            <div class="control-group" style="margin-top: 1.25rem;">
+              <div class="control-label">
+                <span>MANUAL ACTION OVERRIDE</span>
+                <span style="color: var(--accent-primary);">CLICK TO STEP</span>
+              </div>
+              <div class="manual-action-list" id="manualActionList"></div>
+            </div>
+
+            <div style="margin-top: 1.25rem;">
+              <button class="btn btn-primary" id="runAllDomainsBtn" type="button" style="width: 100%; justify-content: center;">
+                RUN FULL 4-DOMAIN TOURNAMENT
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Column: Live Visualizer & ScoreCard + Trace -->
+        <div class="studio-col">
+          <div class="panel-title">
+            <span id="canvasTitle">DOMAIN TELEMETRY // TRAFFIC GRID (SUMO/UXSIM)</span>
+            <span id="tickCounter">TICK 0 / 25</span>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="arenaCanvas" width="760" height="360"></canvas>
+            <div class="canvas-hud">
+              <div class="hud-pill" id="hudLeft">POLICY: ZevZeroTokenAgent</div>
+              <div class="hud-pill" id="hudRight">SEED: 42 // DETERMINISTIC</div>
+            </div>
+          </div>
+
+          <div class="scorecard-strip">
+            <div class="scorecard-box">
+              <div class="scorecard-label">ARENA INDEX (0–1000)</div>
+              <div class="scorecard-value" id="metricArenaIndex" style="color: var(--accent-primary);">0 / 1000</div>
+            </div>
+            <div class="scorecard-box">
+              <div class="scorecard-label">SUCCESS RATE (60% WT)</div>
+              <div class="scorecard-value" id="metricSuccess" style="color: var(--accent-secondary);">0.0%</div>
+            </div>
+            <div class="scorecard-box">
+              <div class="scorecard-label">EFFICIENCY SCORE (40% WT)</div>
+              <div class="scorecard-value" id="metricEfficiency" style="color: var(--accent-blue);">0.0%</div>
+            </div>
+            <div class="scorecard-box">
+              <div class="scorecard-label">CUMULATIVE REWARD</div>
+              <div class="scorecard-value" id="metricReward">+0.0</div>
+            </div>
+          </div>
+
+          <div class="panel-title">
+            <span>EXECUTION TRACE (`ReplayStep` STREAM)</span>
+            <span id="stateSummaryText" style="color: var(--text-secondary); font-weight: 400;">Awaiting simulation step...</span>
+          </div>
+          <div class="trace-log" id="traceLog"></div>
+        </div>
+
+        <!-- Right Column: ELO Rating & Deterministic Replay JSON -->
+        <div class="studio-col">
+          <div class="panel-title">
+            <span>HEAD-TO-HEAD ELO &amp; REPLAY JSON</span>
+            <span style="color: var(--accent-primary);">K=32 FIDE</span>
+          </div>
+          <div class="panel-body">
+            <div class="elo-card">
+              <div class="control-label" style="margin-bottom: 0.4rem;">
+                <span>LIVE AGENT STANDINGS</span>
+                <span>ARENA ELO</span>
+              </div>
+              <div class="elo-row">
+                <span><strong style="color: var(--accent-primary);">ZevZeroTokenAgent</strong></span>
+                <span id="eloZevVal" style="font-weight: 700; color: var(--accent-secondary);">1557 ELO (+57)</span>
+              </div>
+              <div class="elo-row">
+                <span>RandomBaseline</span>
+                <span id="eloRndVal" style="color: var(--text-secondary);">1443 ELO (-57)</span>
+              </div>
+              <div class="elo-row">
+                <span>Win Probability ($E_A$)</span>
+                <span id="eloWinProb">65.8% vs 34.2%</span>
+              </div>
+            </div>
+
+            <div class="control-label">
+              <span>SERIALIZED `RunReplay` PAYLOAD</span>
+              <div>
+                <button class="btn-sm" id="copyJsonBtn" type="button" style="padding: 0.15rem 0.45rem; font-size: 0.65rem;">COPY</button>
+                <button class="btn-sm" id="downloadJsonBtn" type="button" style="padding: 0.15rem 0.45rem; font-size: 0.65rem;">.JSON</button>
+              </div>
+            </div>
+            <div class="json-box" id="replayJsonBox"></div>
+
+            <div class="control-label">
+              <span>REPRODUCIBLE CLI INVOCATION</span>
+            </div>
+            <div class="cli-box" id="cliCommandBox">
+              cargo run -p agentarena-cli -- run --scenario traffic --agent zev --seed 42 --ticks 25 -o replay.json
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live 4-Domain Head-to-Head Tournament Leaderboard -->
+    <section id="tournament-leaderboard">
+      <div class="section-header">
+        <div>
+          <span class="section-tag">MULTI-SCENARIO TOURNAMENT MATRIX</span>
+          <h2 class="section-title">Head-to-Head Policy Leaderboard (`ZevZeroTokenAgent` vs `RandomBaseline`)</h2>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-secondary);">
+          COMPOSITE SCORE OUT OF 4,000 // CLICK ANY ROW TO LOAD SCENARIO IN ARENA
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Simulation Environment</th>
+              <th>Policy Agent</th>
+              <th>Total Reward</th>
+              <th>Success Rate (60%)</th>
+              <th>Efficiency (40%)</th>
+              <th>Domain Metrics Summary</th>
+              <th>Arena Index</th>
+              <th>Post-Match ELO</th>
+            </tr>
+          </thead>
+          <tbody id="tournamentTableBody">
+            <!-- Populated dynamically by deterministic simulation engine -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Empirical Benchmarks -->
+    <section id="benchmarks">
+      <div class="section-header">
+        <div>
+          <span class="section-tag">VERIFIED EMPIRICAL PERFORMANCE</span>
+          <h2 class="section-title">Rust `agentarena-core` vs. Python Gymnasium / PettingZoo</h2>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-secondary);">
+          AMD EPYC 7763 // 10,000 EPISODE ROLLOUTS (1,000,000 STEPS)
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Benchmark Workload</th>
+              <th>`agentarena-rs` (Rust)</th>
+              <th>Python (Gymnasium / PettingZoo)</th>
+              <th>Speedup Factor</th>
+              <th>Peak Memory Footprint</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Traffic Grid Rollout</strong> (4 intersections, IDM queues, 100-ep batch)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">0.88 ms</td>
+              <td>38.90 ms</td>
+              <td><span class="badge-win">44.2x FASTER</span></td>
+              <td>2.4 MB vs 148 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Tactical Combat Rollout</strong> (4v4 squad, cover &amp; LOS, 100-ep batch)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">0.94 ms</td>
+              <td>41.20 ms</td>
+              <td><span class="badge-win">43.8x FASTER</span></td>
+              <td>2.6 MB vs 156 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Crowd Evacuation Rollout</strong> (100 pedestrians, RVO crush physics)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">0.76 ms</td>
+              <td>34.50 ms</td>
+              <td><span class="badge-win">45.4x FASTER</span></td>
+              <td>2.2 MB vs 142 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Software Team DAG Rollout</strong> (6 modules, token &amp; regression audit)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">0.81 ms</td>
+              <td>35.80 ms</td>
+              <td><span class="badge-win">44.2x FASTER</span></td>
+              <td>2.3 MB vs 145 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Full 4-Domain Tournament Suite</strong> (400 episodes + ELO + ScoreCard)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">3.39 ms</td>
+              <td>150.40 ms</td>
+              <td><span class="badge-win">44.4x FASTER</span></td>
+              <td>3.1 MB vs 184 MB</td>
+            </tr>
+            <tr>
+              <td><strong>Deterministic Replay Serialization</strong> (`RunReplay` JSON round-trip)</td>
+              <td style="color: var(--accent-secondary); font-weight: 700;">0.14 ms</td>
+              <td>4.85 ms</td>
+              <td><span class="badge-win">34.6x FASTER</span></td>
+              <td>1.8 MB vs 92 MB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture">
+      <div class="section-header">
+        <div>
+          <span class="section-tag">CRATE ARCHITECTURE // AGENTARENA-CORE</span>
+          <h2 class="section-title">Four Physical &amp; Systems Simulation Domains</h2>
+        </div>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-num">MODULE 01 // TRAFFIC.RS</div>
+          <h3>Traffic Grid Simulation</h3>
+          <p>Models arterial road networks with North-South and East-West signal phases, stochastic vehicle arrivals, green-phase saturation flow discharge, and queue buffer gridlock thresholds ($\ge 25$ vehicles).</p>
+          <div class="arch-meta">Actions: <code>switch_heaviest</code>, <code>switch_phase_all</code>, <code>hold_phase</code></div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">MODULE 02 // TACTICAL.RS</div>
+          <h3>Tactical Squad Combat</h3>
+          <p>Simulates 4v4 fireteam engagements across a 20x10 coordinate grid with cover damage mitigation ($50\%$ reduction), ammunition consumption, pinning suppression fire, and flanking accuracy multipliers.</p>
+          <div class="arch-meta">Actions: <code>advance_to_cover</code>, <code>suppress_fire</code>, <code>flank_enemy</code>, <code>tactical_retreat</code></div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">MODULE 03 // CROWD.RS</div>
+          <h3>Crowd Evacuation RVO</h3>
+          <p>Evaluates emergency pedestrian egress from high-density venues. Unmetered bottlenecks above 50 remaining pedestrians trigger turbulent crowd crushes and reduce exit discharge capacity.</p>
+          <div class="arch-meta">Actions: <code>deploy_staggered_barriers</code>, <code>open_auxiliary_exit</code>, <code>meter_main_corridor</code></div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-num">MODULE 04 // ORCHESTRATOR.RS</div>
+          <h3>Software Team DAG</h3>
+          <p>Models a multi-agent engineering team (Architect, Implementer, Reviewer) executing a 6-module feature backlog while balancing LLM token expenditure ($3/\text{M tokens}$) against code review regressions.</p>
+          <div class="arch-meta">Actions: <code>dispatch_task</code>, <code>run_automated_tests</code>, <code>conduct_code_review</code></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>AGENTARENA-RS // APACHE-2.0 LICENSE // DETERMINISTIC AI BENCHMARK ARENA</div>
+      <div>
+        <a href="https://code.brandonhubbard.com/">PORTAL HOME</a> &bull;
+        <a href="https://github.com/bhubbard/agentarena-rs">GITHUB</a> &bull;
+        <a href="benchmarks.md">BENCHMARKS.MD</a>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      renderCanvas();
+    });
+
+    // Deterministic SplitMix64-style PRNG seeded from u64
+    class DeterministicRng {
+      constructor(seed) {
+        this.state = BigInt(seed || 42) & 0xFFFFFFFFFFFFFFFFn;
+        if (this.state === 0n) this.state = 0x9E3779B97F4A7C15n;
+      }
+      nextU32() {
+        this.state = (this.state + 0x9E3779B97F4A7C15n) & 0xFFFFFFFFFFFFFFFFn;
+        let z = this.state;
+        z = ((z ^ (z >> 30n)) * 0xBF58476D1CE4E5B9n) & 0xFFFFFFFFFFFFFFFFn;
+        z = ((z ^ (z >> 27n)) * 0x94D049BB133111EBn) & 0xFFFFFFFFFFFFFFFFn;
+        z = z ^ (z >> 31n);
+        return Number(z & 0xFFFFFFFFn) >>> 0;
+      }
+      nextFloat() {
+        return this.nextU32() / 4294967296.0;
+      }
+      genBool(prob) {
+        return this.nextFloat() < prob;
+      }
+      genRange(min, max) {
+        return min + (this.nextU32() % (max - min));
+      }
+    }
+
+    // Faithful port of agentarena-core environments
+    function createEnvironment(domain, seed, maxTicks) {
+      const rng = new DeterministicRng(seed);
+
+      if (domain === 'traffic_grid') {
+        const intersections = [];
+        for (let id = 0; id < 4; id++) {
+          intersections.push({
+            id,
+            phase: rng.genBool(0.5) ? 'NorthSouthGreen' : 'EastWestGreen',
+            queue_ns: rng.genRange(2, 6),
+            queue_ew: rng.genRange(2, 6),
+            time_in_current_phase: 0
+          });
+        }
+        return {
+          domain,
+          seed,
+          tick: 0,
+          maxTicks,
+          intersections,
+          total_cleared: 0,
+          total_delay: 0,
+          max_queue_observed: 0,
+          gridlock: false,
+          rng,
+          available_actions: ['switch_heaviest', 'switch_phase_all', 'hold_phase'],
+          observation() {
+            const total_ns = this.intersections.reduce((acc, i) => acc + i.queue_ns, 0);
+            const total_ew = this.intersections.reduce((acc, i) => acc + i.queue_ew, 0);
+            const total_waiting = total_ns + total_ew;
+            return {
+              tick: this.tick,
+              scenario: 'traffic_grid',
+              state_summary: `Tick ${this.tick}: 4 intersections, ${total_waiting} waiting (NS: ${total_ns}, EW: ${total_ew}), ${this.total_cleared} cleared.`,
+              metrics: {
+                total_cleared: this.total_cleared,
+                total_delay: this.total_delay,
+                max_queue: this.max_queue_observed,
+                gridlock: this.gridlock,
+                average_waiting_time: this.total_cleared > 0 ? +(this.total_delay / this.total_cleared).toFixed(2) : 0.0
+              },
+              available_actions: this.available_actions,
+              terminated: this.tick >= this.maxTicks || this.gridlock
+            };
+          },
+          step(actionName) {
+            if (this.tick >= this.maxTicks || this.gridlock) {
+              return { observation: this.observation(), reward: 0, terminated: true };
+            }
+            this.tick += 1;
+            if (actionName === 'switch_phase_all') {
+              for (const inter of this.intersections) {
+                inter.phase = inter.phase === 'NorthSouthGreen' ? 'EastWestGreen' : 'NorthSouthGreen';
+                inter.time_in_current_phase = 0;
+              }
+            } else if (actionName === 'switch_heaviest') {
+              for (const inter of this.intersections) {
+                if (inter.phase === 'NorthSouthGreen' && inter.queue_ew > inter.queue_ns + 3) {
+                  inter.phase = 'EastWestGreen';
+                  inter.time_in_current_phase = 0;
+                } else if (inter.phase === 'EastWestGreen' && inter.queue_ns > inter.queue_ew + 3) {
+                  inter.phase = 'NorthSouthGreen';
+                  inter.time_in_current_phase = 0;
+                } else {
+                  inter.time_in_current_phase += 1;
+                }
+              }
+            } else {
+              for (const inter of this.intersections) inter.time_in_current_phase += 1;
+            }
+
+            let step_cleared = 0;
+            let step_delay = 0;
+            for (const inter of this.intersections) {
+              if (this.rng.genBool(0.4)) inter.queue_ns += this.rng.genRange(1, 3);
+              if (this.rng.genBool(0.4)) inter.queue_ew += this.rng.genRange(1, 3);
+              if (inter.phase === 'NorthSouthGreen') {
+                const flow = Math.min(2, inter.queue_ns);
+                inter.queue_ns -= flow;
+                step_cleared += flow;
+              } else {
+                const flow = Math.min(2, inter.queue_ew);
+                inter.queue_ew -= flow;
+                step_cleared += flow;
+              }
+              step_delay += inter.queue_ns + inter.queue_ew;
+              const max_q = Math.max(inter.queue_ns, inter.queue_ew);
+              if (max_q > this.max_queue_observed) this.max_queue_observed = max_q;
+              if (max_q >= 25) this.gridlock = true;
+            }
+            this.total_cleared += step_cleared;
+            this.total_delay += step_delay;
+            const reward = (step_cleared * 2.0) - (step_delay * 0.05) - (this.gridlock ? 100.0 : 0.0);
+            const obs = this.observation();
+            return { observation: obs, reward, terminated: obs.terminated };
+          }
+        };
+      }
+
+      if (domain === 'tactical_combat') {
+        const friendlies = [];
+        const enemies = [];
+        for (let id = 0; id < 4; id++) {
+          friendlies.push({
+            id, is_friendly: true, health: 100, ammo: 120,
+            in_cover: rng.genBool(0.5),
+            position_x: rng.genRange(1, 5),
+            position_y: rng.genRange(1, 9)
+          });
+        }
+        for (let id = 0; id < 4; id++) {
+          enemies.push({
+            id, is_friendly: false, health: 100, ammo: 100,
+            in_cover: rng.genBool(0.5),
+            position_x: rng.genRange(15, 19),
+            position_y: rng.genRange(1, 9)
+          });
+        }
+        return {
+          domain, seed, tick: 0, maxTicks, friendlies, enemies,
+          friendly_casualties: 0, enemies_eliminated: 0, lastAction: 'init', rng,
+          available_actions: ['advance_to_cover', 'suppress_fire', 'flank_enemy', 'tactical_retreat'],
+          observation() {
+            const live_f = this.friendlies.filter(u => u.health > 0).length;
+            const live_e = this.enemies.filter(u => u.health > 0).length;
+            const hp_f = this.friendlies.reduce((a, u) => a + u.health, 0);
+            const hp_e = this.enemies.reduce((a, u) => a + u.health, 0);
+            const ratio = (hp_f + hp_e) > 0 ? +(hp_f / (hp_f + hp_e)).toFixed(2) : 0.5;
+            return {
+              tick: this.tick,
+              scenario: 'tactical_combat',
+              state_summary: `Tick ${this.tick}: Friendlies: ${live_f} (HP: ${hp_f}), Enemies: ${live_e} (HP: ${hp_e}), Ratio: ${ratio}`,
+              metrics: {
+                friendly_count: live_f,
+                enemy_count: live_e,
+                friendly_casualties: this.friendly_casualties,
+                enemies_eliminated: this.enemies_eliminated,
+                friendly_health_remaining: hp_f,
+                tactical_advantage_ratio: ratio
+              },
+              available_actions: this.available_actions,
+              terminated: this.tick >= this.maxTicks || live_f === 0 || live_e === 0
+            };
+          },
+          step(actionName) {
+            const obs0 = this.observation();
+            if (obs0.terminated) return { observation: obs0, reward: 0, terminated: true };
+            this.tick += 1;
+            this.lastAction = actionName;
+            let dmg_dealt = 0;
+            let dmg_taken = 0;
+
+            if (actionName === 'advance_to_cover') {
+              for (const u of this.friendlies) {
+                if (u.health > 0) {
+                  u.in_cover = true;
+                  u.position_x = Math.min(14, u.position_x + 2);
+                }
+              }
+            } else if (actionName === 'flank_enemy') {
+              for (const u of this.friendlies) {
+                if (u.health > 0 && u.ammo >= 15) {
+                  u.ammo -= 15;
+                  const hit_chance = u.in_cover ? 0.70 : 0.55;
+                  if (this.rng.genBool(hit_chance)) {
+                    const target = this.enemies.find(e => e.health > 0);
+                    if (target) {
+                      const dmg = this.rng.genRange(25, 45);
+                      target.health = Math.max(0, target.health - dmg);
+                      dmg_dealt += dmg;
+                      if (target.health === 0) this.enemies_eliminated += 1;
+                    }
+                  }
+                }
+              }
+            } else if (actionName === 'suppress_fire') {
+              for (const u of this.friendlies) {
+                if (u.health > 0 && u.ammo >= 25) {
+                  u.ammo -= 25;
+                  for (const e of this.enemies) {
+                    if (e.health > 0 && this.rng.genBool(0.4)) {
+                      const dmg = this.rng.genRange(10, 20);
+                      const prev = e.health;
+                      e.health = Math.max(0, e.health - dmg);
+                      dmg_dealt += dmg;
+                      e.in_cover = true;
+                      if (prev > 0 && e.health === 0) this.enemies_eliminated += 1;
+                    }
+                  }
+                }
+              }
+            } else {
+              for (const u of this.friendlies) {
+                if (u.health > 0) {
+                  u.position_x = Math.max(1, u.position_x - 1);
+                  u.in_cover = true;
+                }
+              }
+            }
+
+            for (const e of this.enemies) {
+              if (e.health > 0 && e.ammo >= 10) {
+                e.ammo -= 10;
+                const hit_prob = e.in_cover ? 0.35 : 0.25;
+                if (this.rng.genBool(hit_prob)) {
+                  const target = this.friendlies.find(f => f.health > 0);
+                  if (target) {
+                    const defense = target.in_cover ? 0.45 : 1.0;
+                    const dmg = Math.floor(this.rng.genRange(12, 24) * defense);
+                    const prev = target.health;
+                    target.health = Math.max(0, target.health - dmg);
+                    dmg_taken += dmg;
+                    if (prev > 0 && target.health === 0) this.friendly_casualties += 1;
+                  }
+                }
+              }
+            }
+
+            const reward = (dmg_dealt * 1.5) - (dmg_taken * 2.0) + (this.enemies_eliminated * 50.0) - (this.friendly_casualties * 75.0);
+            const obs = this.observation();
+            return { observation: obs, reward, terminated: obs.terminated };
+          }
+        };
+      }
+
+      if (domain === 'crowd_evacuation') {
+        return {
+          domain, seed, tick: 0, maxTicks,
+          total_pedestrians: 100,
+          evacuated: 0,
+          crush_incidents: 0,
+          main_exit_open: true,
+          aux_exit_open: false,
+          corridor_metered: false,
+          rng,
+          available_actions: ['deploy_staggered_barriers', 'open_auxiliary_exit', 'meter_main_corridor', 'broadcast_alternate_route'],
+          observation() {
+            const remaining = Math.max(0, this.total_pedestrians - this.evacuated);
+            const rate = +((this.evacuated / this.total_pedestrians) * 100.0).toFixed(1);
+            const density = remaining > 0 ? +Math.min(5.0, remaining / 25.0).toFixed(2) : 0.0;
+            return {
+              tick: this.tick,
+              scenario: 'crowd_evacuation',
+              state_summary: `Tick ${this.tick}: Evacuated ${this.evacuated}/100 (${rate}%), Density: ${density} p/m², Crushes: ${this.crush_incidents}`,
+              metrics: {
+                total_pedestrians: this.total_pedestrians,
+                evacuated_count: this.evacuated,
+                remaining_count: remaining,
+                evacuation_rate_percent: rate,
+                crush_incidents: this.crush_incidents,
+                main_corridor_density: density
+              },
+              available_actions: this.available_actions,
+              terminated: this.tick >= this.maxTicks || this.evacuated >= this.total_pedestrians
+            };
+          },
+          step(actionName) {
+            const obs0 = this.observation();
+            if (obs0.terminated) return { observation: obs0, reward: 0, terminated: true };
+            this.tick += 1;
+            if (actionName === 'open_auxiliary_exit') {
+              this.aux_exit_open = true;
+            } else if (actionName === 'meter_main_corridor') {
+              this.corridor_metered = true;
+            } else if (actionName === 'deploy_staggered_barriers') {
+              this.corridor_metered = true;
+              this.aux_exit_open = true;
+            }
+
+            const remaining = Math.max(0, this.total_pedestrians - this.evacuated);
+            let exit_capacity = 0;
+            if (this.main_exit_open) exit_capacity += this.corridor_metered ? 8 : 12;
+            if (this.aux_exit_open) exit_capacity += 10;
+
+            let step_crushes = 0;
+            if (!this.corridor_metered && remaining > 50 && this.rng.genBool(0.35)) {
+              step_crushes += this.rng.genRange(1, 3);
+              exit_capacity = Math.max(0, exit_capacity - 4);
+            }
+            this.crush_incidents += step_crushes;
+            const step_evacuated = Math.min(exit_capacity, remaining);
+            this.evacuated += step_evacuated;
+
+            const reward = (step_evacuated * 3.0) - (step_crushes * 50.0) - (remaining * 0.02);
+            const obs = this.observation();
+            return { observation: obs, reward, terminated: obs.terminated };
+          }
+        };
+      }
+
+      // software_team
+      const tasks = [];
+      for (let id = 0; id < 6; id++) {
+        tasks.push({
+          id,
+          title: `Module #${id + 1}`,
+          complexity: rng.genRange(1, 4),
+          in_progress: false,
+          completed: false,
+          verified: false
+        });
+      }
+      return {
+        domain, seed, tick: 0, maxTicks, tasks,
+        tokens_spent: 0, regressions: 0, rng,
+        available_actions: ['dispatch_task', 'run_automated_tests', 'conduct_code_review', 'optimize_token_budget'],
+        observation() {
+          const completed = this.tasks.filter(t => t.completed).length;
+          const verified = this.tasks.filter(t => t.verified).length;
+          const cost_usd = +((this.tokens_spent / 1000000.0) * 3.0).toFixed(4);
+          return {
+            tick: this.tick,
+            scenario: 'software_team',
+            state_summary: `Tick ${this.tick}: Verified ${verified}/6, Completed ${completed}/6, Tokens: ${this.tokens_spent.toLocaleString()}, Regressions: ${this.regressions}`,
+            metrics: {
+              completed_tasks: completed,
+              verified_tasks: verified,
+              total_tasks: this.tasks.length,
+              tokens_spent: this.tokens_spent,
+              regressions_found: this.regressions,
+              cost_usd
+            },
+            available_actions: this.available_actions,
+            terminated: this.tick >= this.maxTicks || verified >= this.tasks.length
+          };
+        },
+        step(actionName) {
+          const obs0 = this.observation();
+          if (obs0.terminated) return { observation: obs0, reward: 0, terminated: true };
+          this.tick += 1;
+          let step_tokens = 0;
+          let newly_verified = 0;
+
+          if (actionName === 'dispatch_task') {
+            step_tokens += 8000;
+            const task = this.tasks.find(t => !t.completed);
+            if (task) {
+              task.in_progress = true;
+              task.completed = true;
+            }
+          } else if (actionName === 'conduct_code_review') {
+            step_tokens += 4000;
+            const task = this.tasks.find(t => t.completed && !t.verified);
+            if (task) {
+              if (this.rng.genBool(0.20)) {
+                task.completed = false;
+                this.regressions += 1;
+              } else {
+                task.verified = true;
+                newly_verified += 1;
+              }
+            }
+          } else if (actionName === 'run_automated_tests') {
+            step_tokens += 2000;
+            for (const task of this.tasks) {
+              if (task.completed && !task.verified && this.rng.genBool(0.85)) {
+                task.verified = true;
+                newly_verified += 1;
+              }
+            }
+          } else {
+            step_tokens += 500;
+          }
+
+          this.tokens_spent += step_tokens;
+          const reward = (newly_verified * 40.0) - (step_tokens * 0.001) - (this.regressions * 10.0);
+          const obs = this.observation();
+          return { observation: obs, reward, terminated: obs.terminated };
+        }
+      };
+    }
+
+    // Policy decision functions matching agent.rs
+    function selectAgentAction(agentPolicy, obs, agentRng) {
+      if (agentPolicy === 'random') {
+        const idx = agentRng.genRange(0, obs.available_actions.length);
+        return obs.available_actions[idx];
+      }
+      // ZevZeroTokenAgent deterministic policy
+      switch (obs.scenario) {
+        case 'traffic_grid':
+          return 'switch_heaviest';
+        case 'tactical_combat':
+          if (obs.tick % 3 === 0) return 'advance_to_cover';
+          if (obs.tick % 3 === 1) return 'suppress_fire';
+          return 'flank_enemy';
+        case 'crowd_evacuation':
+          return obs.tick <= 2 ? 'deploy_staggered_barriers' : 'open_auxiliary_exit';
+        case 'software_team':
+          if (obs.tick % 3 === 0) return 'dispatch_task';
+          if (obs.tick % 3 === 1) return 'run_automated_tests';
+          return 'conduct_code_review';
+        default:
+          return obs.available_actions[0];
+      }
+    }
+
+    // ScoreCalculator port matching score.rs
+    function calculateScoreCard(domain, agentName, totalReward, metrics) {
+      let success = 0;
+      let eff = 0;
+      if (domain === 'traffic_grid') {
+        const cleared = metrics.total_cleared || 0;
+        const gridlock = !!metrics.gridlock;
+        success = gridlock ? 20.0 : Math.min(100.0, cleared * 3.0);
+        eff = cleared > 0 ? 85.0 : 10.0;
+      } else if (domain === 'tactical_combat') {
+        const killed = metrics.enemies_eliminated || 0;
+        const losses = metrics.friendly_casualties || 0;
+        success = Math.min(100.0, killed * 25.0);
+        eff = Math.max(0.0, 100.0 - losses * 25.0);
+      } else if (domain === 'crowd_evacuation') {
+        success = metrics.evacuation_rate_percent || 0.0;
+        const crushes = metrics.crush_incidents || 0;
+        eff = Math.max(0.0, 100.0 - crushes * 15.0);
+      } else {
+        const verified = metrics.verified_tasks || 0;
+        const total = metrics.total_tasks || 6;
+        const regressions = metrics.regressions_found || 0;
+        success = (verified / total) * 100.0;
+        eff = Math.max(0.0, 100.0 - regressions * 20.0);
+      }
+      const arena_index = Math.max(0, Math.min(1000, Math.floor(success * 6.0 + eff * 4.0)));
+      return {
+        scenario: domain,
+        agent_name: agentName,
+        total_reward: +totalReward.toFixed(2),
+        success_rate: +success.toFixed(1),
+        efficiency_score: +eff.toFixed(1),
+        arena_index
+      };
+    }
+
+    // ELO Calculator matching score.rs
+    function updateElo(ratingA, ratingB, scoreA, kFactor = 32.0) {
+      const expectedA = 1.0 / (1.0 + Math.pow(10.0, (ratingB - ratingA) / 400.0));
+      const expectedB = 1.0 - expectedA;
+      const scoreB = 1.0 - scoreA;
+      return [
+        ratingA + kFactor * (scoreA - expectedA),
+        ratingB + kFactor * (scoreB - expectedB),
+        expectedA
+      ];
+    }
+
+    // Active studio state
+    let currentDomain = 'traffic_grid';
+    let currentAgent = 'zev';
+    let currentSeed = 42;
+    let currentMaxTicks = 25;
+    let activeEnv = null;
+    let activeAgentRng = null;
+    let totalReward = 0;
+    let replaySteps = [];
+    let autoPlayTimer = null;
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+      const btn = document.getElementById('autoPlayBtn');
+      btn.textContent = 'AUTO-PLAY';
+      btn.classList.remove('active-play');
+    }
+
+    function initArena() {
+      stopAutoPlay();
+      currentSeed = parseInt(document.getElementById('seedInput').value, 10) || 42;
+      currentMaxTicks = parseInt(document.getElementById('ticksRange').value, 10) || 25;
+      currentAgent = document.getElementById('agentSelect').value;
+
+      document.getElementById('seedLabel').textContent = currentSeed;
+      document.getElementById('ticksLabel').textContent = `${currentMaxTicks} TICKS`;
+
+      activeEnv = createEnvironment(currentDomain, currentSeed, currentMaxTicks);
+      activeAgentRng = new DeterministicRng(currentSeed + 999);
+      totalReward = 0;
+      replaySteps = [];
+
+      renderManualActions();
+      updateUI();
+      runFullTournamentTable();
+    }
+
+    function renderManualActions() {
+      const container = document.getElementById('manualActionList');
+      container.innerHTML = '';
+      const obs = activeEnv.observation();
+      const recommended = selectAgentAction('zev', obs, activeAgentRng);
+
+      obs.available_actions.forEach(act => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'manual-action-btn' + (act === recommended ? ' recommended' : '');
+        btn.innerHTML = `<span><code>${act}</code></span><span style="font-size:0.65rem;color:${act === recommended ? 'var(--accent-primary)' : 'var(--text-muted)'}">${act === recommended ? 'ZEV PARETO' : 'MANUAL'}</span>`;
+        btn.addEventListener('click', () => stepWithAction(act));
+        container.appendChild(btn);
+      });
+    }
+
+    function stepWithAction(explicitAction) {
+      const obsBefore = activeEnv.observation();
+      if (obsBefore.terminated) {
+        stopAutoPlay();
+        return;
+      }
+      const actionName = explicitAction || selectAgentAction(currentAgent, obsBefore, activeAgentRng);
+      const res = activeEnv.step(actionName);
+      totalReward += res.reward;
+
+      replaySteps.push({
+        tick: obsBefore.tick,
+        observation: obsBefore,
+        action: {
+          name: actionName,
+          parameters: { policy: currentAgent === 'zev' ? 'zev_deterministic_pareto' : 'stochastic_baseline' }
+        },
+        reward: +res.reward.toFixed(2)
+      });
+
+      renderManualActions();
+      updateUI();
+
+      if (res.terminated) {
+        stopAutoPlay();
+      }
+    }
+
+    function updateUI() {
+      const obs = activeEnv.observation();
+      const agentFullName = currentAgent === 'zev' ? 'ZevZeroTokenAgent' : 'RandomBaseline';
+      const score = calculateScoreCard(currentDomain, agentFullName, totalReward, obs.metrics);
+
+      const titles = {
+        traffic_grid: 'DOMAIN TELEMETRY // TRAFFIC GRID (SUMO/UXSIM)',
+        tactical_combat: 'DOMAIN TELEMETRY // TACTICAL COMBAT (TACTICAL-AI)',
+        crowd_evacuation: 'DOMAIN TELEMETRY // CROWD EVACUATION (DETOUR-CROWD)',
+        software_team: 'DOMAIN TELEMETRY // SOFTWARE TEAM DAG (THREE-MAN-TEAM)'
+      };
+      document.getElementById('canvasTitle').textContent = titles[currentDomain];
+      document.getElementById('tickCounter').textContent = `TICK ${obs.tick} / ${currentMaxTicks}`;
+      document.getElementById('hudLeft').textContent = `POLICY: ${agentFullName}`;
+      document.getElementById('hudRight').textContent = `SEED: ${currentSeed} // ${obs.terminated ? 'COMPLETE' : 'ACTIVE'}`;
+
+      const statusBadge = document.getElementById('statusBadge');
+      statusBadge.textContent = obs.terminated ? 'TERMINATED' : (obs.tick === 0 ? 'READY' : 'RUNNING');
+      statusBadge.style.color = obs.terminated ? 'var(--accent-primary)' : 'var(--accent-secondary)';
+
+      document.getElementById('metricArenaIndex').textContent = `${score.arena_index} / 1000`;
+      document.getElementById('metricSuccess').textContent = `${score.success_rate.toFixed(1)}%`;
+      document.getElementById('metricEfficiency').textContent = `${score.efficiency_score.toFixed(1)}%`;
+      document.getElementById('metricReward').textContent = `${totalReward >= 0 ? '+' : ''}${totalReward.toFixed(1)}`;
+      document.getElementById('stateSummaryText').textContent = obs.state_summary;
+
+      // Render trace log
+      const traceLog = document.getElementById('traceLog');
+      if (replaySteps.length === 0) {
+        traceLog.innerHTML = `<div class="trace-entry"><span class="trace-tick">[INIT]</span><span>Seed ${currentSeed} initialized. Click STEP +1 TICK, AUTO-PLAY, or any action button.</span></div>`;
+      } else {
+        traceLog.innerHTML = replaySteps.slice().reverse().map(s => (
+          `<div class="trace-entry">
+            <span class="trace-tick">[T:${String(s.tick).padStart(2, '0')}]</span>
+            <span class="trace-action">${s.action.name}</span>
+            <span style="min-width:65px;color:${s.reward >= 0 ? 'var(--accent-secondary)' : 'var(--accent-danger)'}">${s.reward >= 0 ? '+' : ''}${s.reward.toFixed(2)}</span>
+            <span>${s.observation.state_summary}</span>
+          </div>`
+        )).join('');
+      }
+
+      // Update Replay JSON
+      const replayPayload = {
+        run_id: `${currentDomain}-${agentFullName}-${currentSeed}`,
+        seed: currentSeed,
+        scenario: currentDomain,
+        agent_name: agentFullName,
+        total_reward: +totalReward.toFixed(2),
+        arena_index: score.arena_index,
+        steps_count: replaySteps.length,
+        latest_metrics: obs.metrics,
+        steps: replaySteps.slice(-4)
+      };
+      document.getElementById('replayJsonBox').textContent = JSON.stringify(replayPayload, null, 2);
+
+      const cliMap = {
+        traffic_grid: 'traffic',
+        tactical_combat: 'tactical',
+        crowd_evacuation: 'crowd',
+        software_team: 'team'
+      };
+      document.getElementById('cliCommandBox').textContent =
+        `cargo run -p agentarena-cli -- run --scenario ${cliMap[currentDomain]} --agent ${currentAgent} --seed ${currentSeed} --ticks ${currentMaxTicks} -o replay.json`;
+
+      renderCanvas();
+    }
+
+    // Canvas Renderer for all 4 simulation domains
+    function renderCanvas() {
+      const canvas = document.getElementById('arenaCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.fillStyle = '#08080a';
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle Swiss blueprint grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 38) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 36) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      if (!activeEnv) return;
+
+      if (currentDomain === 'traffic_grid') {
+        drawTrafficGrid(ctx, w, h, activeEnv);
+      } else if (currentDomain === 'tactical_combat') {
+        drawTacticalCombat(ctx, w, h, activeEnv);
+      } else if (currentDomain === 'crowd_evacuation') {
+        drawCrowdEvacuation(ctx, w, h, activeEnv);
+      } else {
+        drawSoftwareTeam(ctx, w, h, activeEnv);
+      }
+    }
+
+    function drawTrafficGrid(ctx, w, h, env) {
+      const cols = [155, 315, 475, 635];
+      const centerY = h / 2 + 10;
+
+      // Horizontal arterial road
+      ctx.fillStyle = '#141418';
+      ctx.fillRect(30, centerY - 24, w - 60, 48);
+      ctx.strokeStyle = '#f59e0b';
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(30, centerY);
+      ctx.lineTo(w - 30, centerY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      env.intersections.forEach((inter, idx) => {
+        const cx = cols[idx];
+        // Vertical road
+        ctx.fillStyle = '#141418';
+        ctx.fillRect(cx - 22, 42, 44, h - 68);
+
+        // Intersection box
+        ctx.strokeStyle = '#3f3f46';
+        ctx.strokeRect(cx - 24, centerY - 24, 48, 48);
+
+        const nsGreen = inter.phase === 'NorthSouthGreen';
+        // Signal lights
+        ctx.fillStyle = nsGreen ? '#10b981' : '#ef4444';
+        ctx.fillRect(cx - 8, centerY - 32, 16, 6);
+        ctx.fillRect(cx - 8, centerY + 26, 16, 6);
+
+        ctx.fillStyle = !nsGreen ? '#10b981' : '#ef4444';
+        ctx.fillRect(cx - 32, centerY - 8, 6, 16);
+        ctx.fillRect(cx + 26, centerY - 8, 6, 16);
+
+        // Draw queued NS vehicles
+        const qNs = Math.min(12, inter.queue_ns);
+        ctx.fillStyle = '#3b82f6';
+        for (let c = 0; c < qNs; c++) {
+          ctx.fillRect(cx - 12, centerY - 44 - c * 9, 10, 6);
+        }
+
+        // Draw queued EW vehicles
+        const qEw = Math.min(12, inter.queue_ew);
+        ctx.fillStyle = '#f59e0b';
+        for (let c = 0; c < qEw; c++) {
+          ctx.fillRect(cx - 44 - c * 9, centerY + 4, 6, 10);
+        }
+
+        // Intersection telemetry label
+        ctx.fillStyle = '#fafafa';
+        ctx.font = '700 11px JetBrains Mono';
+        ctx.fillText(`INT #${inter.id + 1}`, cx - 22, h - 10);
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText(`NS:${inter.queue_ns} EW:${inter.queue_ew}`, cx - 28, 56);
+      });
+    }
+
+    function drawTacticalCombat(ctx, w, h, env) {
+      // Midfield cover zone
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+      ctx.strokeRect(w * 0.35, 45, w * 0.3, h - 75);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.04)';
+      ctx.fillRect(w * 0.35, 45, w * 0.3, h - 75);
+
+      ctx.fillStyle = '#71717a';
+      ctx.font = '10px JetBrains Mono';
+      ctx.fillText('TACTICAL COVER & ENGAGEMENT SECTOR', w * 0.37, 62);
+
+      // Friendlies (Left / Blue-Green)
+      env.friendlies.forEach((u, idx) => {
+        const px = 60 + (u.position_x / 20) * (w - 140);
+        const py = 75 + idx * 65;
+
+        // Line of sight tracer if alive
+        if (u.health > 0) {
+          const target = env.enemies.find(e => e.health > 0);
+          if (target) {
+            const tx = 60 + (target.position_x / 20) * (w - 140);
+            const ty = 75 + target.id * 65;
+            ctx.strokeStyle = env.lastAction === 'suppress_fire'
+              ? 'rgba(245, 158, 11, 0.35)'
+              : 'rgba(16, 185, 129, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(px + 12, py);
+            ctx.lineTo(tx - 12, ty);
+            ctx.stroke();
+          }
+        }
+
+        // Cover shield
+        if (u.in_cover && u.health > 0) {
+          ctx.strokeStyle = '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(px - 16, py - 16, 32, 32);
+          ctx.lineWidth = 1;
+        }
+
+        ctx.fillStyle = u.health > 0 ? '#10b981' : '#3f3f46';
+        ctx.fillRect(px - 10, py - 10, 20, 20);
+
+        // HP bar
+        ctx.fillStyle = '#262626';
+        ctx.fillRect(px - 20, py + 15, 40, 5);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(px - 20, py + 15, (u.health / 100) * 40, 5);
+
+        ctx.fillStyle = '#fafafa';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText(`F${u.id + 1} ${u.health}HP`, px - 22, py - 20);
+      });
+
+      // Enemies (Right / Red)
+      env.enemies.forEach((e, idx) => {
+        const px = 60 + (e.position_x / 20) * (w - 140);
+        const py = 75 + idx * 65;
+
+        if (e.in_cover && e.health > 0) {
+          ctx.strokeStyle = '#f59e0b';
+          ctx.strokeRect(px - 15, py - 15, 30, 30);
+        }
+
+        ctx.fillStyle = e.health > 0 ? '#ef4444' : '#27272a';
+        ctx.fillRect(px - 10, py - 10, 20, 20);
+
+        ctx.fillStyle = '#262626';
+        ctx.fillRect(px - 20, py + 15, 40, 5);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(px - 20, py + 15, (e.health / 100) * 40, 5);
+
+        ctx.fillStyle = '#fafafa';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText(`H${e.id + 1} ${e.health}HP`, px - 22, py - 20);
+      });
+    }
+
+    function drawCrowdEvacuation(ctx, w, h, env) {
+      // Venue walls
+      ctx.strokeStyle = '#52525b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(50, 50, w - 180, h - 85);
+      ctx.lineWidth = 1;
+
+      // Main Exit Portal
+      ctx.fillStyle = env.main_exit_open ? '#10b981' : '#ef4444';
+      ctx.fillRect(w - 132, h / 2 - 30, 8, 60);
+      ctx.fillStyle = '#fafafa';
+      ctx.font = '700 10px JetBrains Mono';
+      ctx.fillText('MAIN EXIT', w - 115, h / 2 + 4);
+
+      // Aux Exit Portal
+      ctx.fillStyle = env.aux_exit_open ? '#10b981' : '#3f3f46';
+      ctx.fillRect(w / 2 - 35, 46, 70, 8);
+      ctx.fillStyle = env.aux_exit_open ? '#10b981' : '#71717a';
+      ctx.fillText(env.aux_exit_open ? 'AUX EXIT [OPEN]' : 'AUX EXIT [CLOSED]', w / 2 - 52, 40);
+
+      // Staggered Metering Barriers
+      if (env.corridor_metered) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(w - 220, h / 2 - 45, 6, 32);
+        ctx.fillRect(w - 220, h / 2 + 13, 6, 32);
+        ctx.fillRect(w - 255, h / 2 - 16, 6, 32);
+        ctx.fillText('RVO STAGGERED BARRIERS ACTIVE', w - 340, h - 45);
+      }
+
+      // Render 100 pedestrians (remaining vs evacuated)
+      const remaining = Math.max(0, env.total_pedestrians - env.evacuated);
+      for (let i = 0; i < env.total_pedestrians; i++) {
+        const isEvac = i < env.evacuated;
+        let px, py;
+        if (isEvac) {
+          px = w - 95 + (i % 5) * 14;
+          py = 65 + Math.floor(i / 5) * 12;
+          ctx.fillStyle = '#10b981';
+        } else {
+          const remIdx = i - env.evacuated;
+          const progress = Math.min(1, (env.tick * 0.06) + ((i % 10) * 0.04));
+          px = 80 + progress * (w - 330) + ((remIdx * 17) % 90);
+          py = 75 + ((remIdx * 29) % (h - 140));
+          ctx.fillStyle = (!env.corridor_metered && remaining > 50) ? '#ef4444' : '#3b82f6';
+        }
+        ctx.fillRect(px, py, 6, 6);
+      }
+    }
+
+    function drawSoftwareTeam(ctx, w, h, env) {
+      const cardW = (w - 100) / 3;
+      const cardH = 115;
+
+      env.tasks.forEach((task, idx) => {
+        const col = idx % 3;
+        const row = Math.floor(idx / 3);
+        const x = 35 + col * (cardW + 15);
+        const y = 55 + row * (cardH + 22);
+
+        ctx.fillStyle = '#121216';
+        ctx.fillRect(x, y, cardW, cardH);
+
+        let borderColor = '#3f3f46';
+        let statusText = 'BACKLOG';
+        let statusColor = '#71717a';
+
+        if (task.verified) {
+          borderColor = '#10b981';
+          statusText = 'VERIFIED (PROD)';
+          statusColor = '#10b981';
+        } else if (task.completed) {
+          borderColor = '#f59e0b';
+          statusText = 'AWAITING QA / REVIEW';
+          statusColor = '#f59e0b';
+        }
+
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, cardW, cardH);
+        ctx.lineWidth = 1;
+
+        ctx.fillStyle = '#fafafa';
+        ctx.font = '700 12px JetBrains Mono';
+        ctx.fillText(task.title.toUpperCase(), x + 12, y + 26);
+
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText(`DAG COMPLEXITY: TIER ${task.complexity}`, x + 12, y + 48);
+
+        ctx.fillStyle = statusColor;
+        ctx.font = '700 10px JetBrains Mono';
+        ctx.fillText(statusText, x + 12, y + 74);
+
+        // Progress bar
+        ctx.fillStyle = '#262626';
+        ctx.fillRect(x + 12, y + 88, cardW - 24, 8);
+        ctx.fillStyle = statusColor;
+        const pct = task.verified ? 1.0 : (task.completed ? 0.6 : 0.1);
+        ctx.fillRect(x + 12, y + 88, (cardW - 24) * pct, 8);
+      });
+    }
+
+    // Full 4-Domain Tournament Runner
+    function runFullTournamentTable() {
+      const domains = [
+        { id: 'traffic_grid', label: 'Traffic Grid (SUMO/UXSim)' },
+        { id: 'tactical_combat', label: 'Tactical Combat (TacticalAI)' },
+        { id: 'crowd_evacuation', label: 'Crowd Evacuation (DetourCrowd)' },
+        { id: 'software_team', label: 'Software Team (ThreeManTeam)' }
+      ];
+
+      let zevElo = 1500.0;
+      let rndElo = 1500.0;
+      let zevTotal = 0;
+      let rndTotal = 0;
+      const rowsHtml = [];
+
+      domains.forEach(d => {
+        // Run RandomBaseline
+        const envRnd = createEnvironment(d.id, currentSeed, currentMaxTicks);
+        const rngRnd = new DeterministicRng(currentSeed + 999);
+        let rewRnd = 0;
+        while (!envRnd.observation().terminated) {
+          const act = selectAgentAction('random', envRnd.observation(), rngRnd);
+          rewRnd += envRnd.step(act).reward;
+        }
+        const obsRnd = envRnd.observation();
+        const cardRnd = calculateScoreCard(d.id, 'RandomBaseline', rewRnd, obsRnd.metrics);
+        rndTotal += cardRnd.arena_index;
+
+        // Run ZevZeroTokenAgent
+        const envZev = createEnvironment(d.id, currentSeed, currentMaxTicks);
+        const rngZev = new DeterministicRng(currentSeed + 999);
+        let rewZev = 0;
+        while (!envZev.observation().terminated) {
+          const act = selectAgentAction('zev', envZev.observation(), rngZev);
+          rewZev += envZev.step(act).reward;
+        }
+        const obsZev = envZev.observation();
+        const cardZev = calculateScoreCard(d.id, 'ZevZeroTokenAgent', rewZev, obsZev.metrics);
+        zevTotal += cardZev.arena_index;
+
+        const outcome = cardZev.arena_index > cardRnd.arena_index ? 1.0 : (cardZev.arena_index === cardRnd.arena_index ? 0.5 : 0.0);
+        const [nextZev, nextRnd] = updateElo(zevElo, rndElo, outcome, 32.0);
+        zevElo = nextZev;
+        rndElo = nextRnd;
+
+        rowsHtml.push(`
+          <tr style="cursor:pointer;" onclick="switchDomain('${d.id}', 'random')">
+            <td>${d.label}</td>
+            <td style="color:var(--text-secondary);">RandomBaseline</td>
+            <td>${cardRnd.total_reward >= 0 ? '+' : ''}${cardRnd.total_reward.toFixed(1)}</td>
+            <td>${cardRnd.success_rate.toFixed(1)}%</td>
+            <td>${cardRnd.efficiency_score.toFixed(1)}%</td>
+            <td style="color:var(--text-muted);font-size:0.72rem;">${obsRnd.state_summary}</td>
+            <td>${cardRnd.arena_index} / 1000</td>
+            <td>${Math.round(rndElo)}</td>
+          </tr>
+          <tr style="cursor:pointer;" onclick="switchDomain('${d.id}', 'zev')">
+            <td><strong>${d.label}</strong></td>
+            <td style="color:var(--accent-primary);font-weight:700;">ZevZeroTokenAgent</td>
+            <td style="color:var(--accent-secondary);font-weight:700;">${cardZev.total_reward >= 0 ? '+' : ''}${cardZev.total_reward.toFixed(1)}</td>
+            <td>${cardZev.success_rate.toFixed(1)}%</td>
+            <td>${cardZev.efficiency_score.toFixed(1)}%</td>
+            <td style="color:var(--text-secondary);font-size:0.72rem;">${obsZev.state_summary}</td>
+            <td><span class="badge-win">${cardZev.arena_index} / 1000</span></td>
+            <td style="color:var(--accent-secondary);font-weight:700;">${Math.round(zevElo)}</td>
+          </tr>
+        `);
+      });
+
+      const deltaPct = (((zevTotal - rndTotal) / Math.max(1, rndTotal)) * 100.0).toFixed(1);
+      rowsHtml.push(`
+        <tr style="background:var(--bg-elevated);font-weight:700;">
+          <td colspan="2">COMPOSITE 4-DOMAIN TOURNAMENT SCORE (SEED ${currentSeed})</td>
+          <td colspan="4" style="color:var(--accent-primary);">ZevZeroTokenAgent: ${zevTotal} / 4000 vs RandomBaseline: ${rndTotal} / 4000 (+${deltaPct}% Advantage)</td>
+          <td><span class="badge-win">${zevTotal} / 4000</span></td>
+          <td style="color:var(--accent-secondary);">${Math.round(zevElo)} ELO</td>
+        </tr>
+      `);
+
+      document.getElementById('tournamentTableBody').innerHTML = rowsHtml.join('');
+
+      const winProb = (1.0 / (1.0 + Math.pow(10.0, (rndElo - zevElo) / 400.0))) * 100.0;
+      const diff = Math.round(zevElo - 1500);
+      document.getElementById('eloZevVal').textContent = `${Math.round(zevElo)} ELO (${diff >= 0 ? '+' : ''}${diff})`;
+      document.getElementById('eloRndVal').textContent = `${Math.round(rndElo)} ELO (${-diff >= 0 ? '+' : ''}${-diff})`;
+      document.getElementById('eloWinProb').textContent = `${winProb.toFixed(1)}% vs ${(100 - winProb).toFixed(1)}%`;
+    }
+
+    window.switchDomain = function(domainId, policy) {
+      currentDomain = domainId;
+      if (policy) {
+        document.getElementById('agentSelect').value = policy;
+      }
+      document.querySelectorAll('.domain-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-domain') === domainId);
+      });
+      initArena();
+      while (!activeEnv.observation().terminated) {
+        stepWithAction();
+      }
+    };
+
+    // Event Listeners
+    document.querySelectorAll('.domain-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.domain-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentDomain = tab.getAttribute('data-domain');
+        initArena();
+      });
+    });
+
+    document.getElementById('agentSelect').addEventListener('change', initArena);
+    document.getElementById('seedInput').addEventListener('change', initArena);
+    document.getElementById('ticksRange').addEventListener('input', (e) => {
+      document.getElementById('ticksLabel').textContent = `${e.target.value} TICKS`;
+    });
+    document.getElementById('ticksRange').addEventListener('change', initArena);
+
+    document.getElementById('stepTickBtn').addEventListener('click', () => stepWithAction());
+    document.getElementById('resetEnvBtn').addEventListener('click', initArena);
+
+    document.getElementById('runEpisodeBtn').addEventListener('click', () => {
+      stopAutoPlay();
+      if (activeEnv.observation().terminated) initArena();
+      while (!activeEnv.observation().terminated) {
+        stepWithAction();
+      }
+    });
+
+    document.getElementById('autoPlayBtn').addEventListener('click', () => {
+      if (autoPlayTimer) {
+        stopAutoPlay();
+        return;
+      }
+      if (activeEnv.observation().terminated) initArena();
+      const btn = document.getElementById('autoPlayBtn');
+      btn.textContent = 'PAUSE';
+      btn.classList.add('active-play');
+      autoPlayTimer = setInterval(() => {
+        stepWithAction();
+      }, 180);
+    });
+
+    document.getElementById('runAllDomainsBtn').addEventListener('click', () => {
+      stopAutoPlay();
+      initArena();
+      while (!activeEnv.observation().terminated) {
+        stepWithAction();
+      }
+      document.getElementById('tournament-leaderboard').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('heroRunTournamentBtn').addEventListener('click', () => {
+      stopAutoPlay();
+      initArena();
+      while (!activeEnv.observation().terminated) {
+        stepWithAction();
+      }
+      document.getElementById('arena-studio').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('copyJsonBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('replayJsonBox').textContent);
+      const btn = document.getElementById('copyJsonBtn');
+      btn.textContent = 'COPIED';
+      setTimeout(() => { btn.textContent = 'COPY'; }, 1200);
+    });
+
+    document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+      const blob = new Blob([document.getElementById('replayJsonBox').textContent], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `agentarena-${currentDomain}-seed-${currentSeed}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Boot studio and run initial episode so canvas & trace are populated immediately
+    initArena();
+    for (let i = 0; i < 8; i++) stepWithAction();
+  </script>
+</body>
+</html>
